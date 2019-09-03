@@ -68,6 +68,7 @@ export interface PlaygroundWrapperProps {
   codeTheme?: EditorColours
   workspaceName?: string
   headers?: any
+  onEdit?: (value: string) => void
 }
 
 export interface ReduxProps {
@@ -397,6 +398,7 @@ class PlaygroundWrapper extends React.Component<
               fixedEndpoints={Boolean(this.state.configString)}
               fixedEndpoint={this.props.fixedEndpoint}
               headers={combinedHeaders}
+              onEdit={this.props.onEdit}
               configPath={this.props.configPath}
               workspaceName={
                 this.props.workspaceName || this.state.activeProjectName

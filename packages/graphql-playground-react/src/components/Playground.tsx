@@ -92,6 +92,7 @@ export interface Props {
   ) => ApolloLink
   workspaceName?: string
   schema?: GraphQLSchema
+  onEdit?: (value: string) => void
 }
 
 export interface ReduxProps {
@@ -315,6 +316,7 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
                 shareEnabled={this.props.shareEnabled}
                 fixedEndpoint={this.props.fixedEndpoint}
                 schema={this.state.schema}
+                onEdit={this.props.onEdit}
               />
             )}
           </GraphiqlWrapper>

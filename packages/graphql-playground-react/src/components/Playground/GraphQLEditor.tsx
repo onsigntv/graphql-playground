@@ -79,6 +79,7 @@ export interface Props {
   shareEnabled?: boolean
   fixedEndpoint?: boolean
   schema?: GraphQLSchema
+  onEdit?: (value: string) => void
 }
 
 export interface ReduxProps {
@@ -189,6 +190,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
                 onHintInformationRender={this.handleHintInformationRender}
                 onRunQuery={this.runQueryAtCursor}
                 onClickReference={this.handleClickReference}
+                onEdit={this.props.onEdit}
               />
               <VariableEditor
                 isOpen={this.props.variableEditorOpen}
