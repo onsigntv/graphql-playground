@@ -465,10 +465,9 @@ const reducer = handleActions(
         return newState
       }
 
-      return newState.setIn(
-        ['sessions', selectedSessionId, 'headers'],
-        headersString,
-      )
+      return newState.update('sessions', sessions => {
+        return sessions.map(s => s.set('headers', headersString))
+      })
     },
     DUPLICATE_SESSION: (state, { payload: { session } }) => {
       const newSession = session.set('id', cuid())
