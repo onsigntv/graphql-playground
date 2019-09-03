@@ -98,6 +98,7 @@ class PlaygroundWrapper extends React.Component<
   constructor(props: PlaygroundWrapperProps & ReduxProps) {
     super(props)
     ;(global as any).m = this
+    ;(window as any).changeHeader = this.handleChangeHeader
 
     this.state = this.mapPropsToState(props)
     this.removeLoader()
@@ -453,6 +454,12 @@ class PlaygroundWrapper extends React.Component<
     })
   }
 
+  handleChangeHeader = (header: string, value: string) => {
+    const headers = this.state.headers || {}
+    headers[header] = value
+    this.setState({ headers })
+  }
+
   private handleChangeEndpoint = endpoint => {
     this.setState({ endpoint })
   }
@@ -556,11 +563,11 @@ async function find(
 }
 
 const appearIn = keyframes`
-  from { 
+  from {
     opacity: 0;
     transform: translateY(10px);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0);
   }
