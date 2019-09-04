@@ -263,7 +263,6 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
             />
           </SideTab>
         </SideTabs>
-        }
       </Container>
     )
   }
