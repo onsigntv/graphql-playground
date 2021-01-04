@@ -23,7 +23,7 @@ import {
   setCurrentQueryEndTime,
 } from './actions'
 import { getSelectedSessionId } from './selectors'
-import { getDefaultSession, defaultQuery } from '../../constants'
+import { getDefaultSession } from '../../constants'
 import * as cuid from 'cuid'
 import { formatError } from './fetchingSagas'
 import { arrayMove } from 'react-sortable-hoc'
@@ -465,19 +465,9 @@ const reducer = handleActions(
         return newState
       }
 
-      if (currentSession.query === defaultQuery) {
-        return newState.setIn(
-          ['sessions', selectedSessionId, 'headers'],
-          headersString,
-        )
-      }
-
-      const session = makeSession(endpoint).set('headers', headersString)
-
-      return newState
-        .setIn(['sessions', session.id], session)
-        .set('selectedSessionId', session.id)
-        .set('sessionCount', state.sessions.size + 1)
+      return newState.update('sessions', sessions => {
+        return sessions.map(s => s.set('headers', headersString))
+      })
     },
     DUPLICATE_SESSION: (state, { payload: { session } }) => {
       const newSession = session.set('id', cuid())

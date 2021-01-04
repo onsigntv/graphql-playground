@@ -15,7 +15,6 @@ import {
 } from './VariableEditor'
 import Spinner from '../Spinner'
 import Results from './Results'
-import ResponseTracing from './ResponseTracing'
 import { fillLeafs } from 'graphiql/dist/utility/fillLeafs'
 import { getLeft, getTop } from 'graphiql/dist/utility/elementPosition'
 
@@ -36,12 +35,9 @@ import {
   getSubscriptionActive,
   getVariableEditorOpen,
   getVariableEditorHeight,
-  getResponseTracingOpen,
-  getResponseTracingHeight,
   getResponseExtensions,
   getCurrentQueryStartTime,
   getCurrentQueryEndTime,
-  getTracingSupported,
   getEditorFlex,
   getQueryVariablesActive,
   getHeaders,
@@ -58,9 +54,6 @@ import {
   openQueryVariables,
   openVariables,
   closeVariables,
-  openTracing,
-  closeTracing,
-  toggleTracing,
   setEditorFlex,
   toggleVariables,
   fetchSchema,
@@ -79,6 +72,7 @@ export interface Props {
   shareEnabled?: boolean
   fixedEndpoint?: boolean
   schema?: GraphQLSchema
+  onEdit?: (value: string) => void
 }
 
 export interface ReduxProps {
@@ -90,9 +84,6 @@ export interface ReduxProps {
   closeQueryVariables: () => void
   openVariables: (height: number) => void
   closeVariables: (height: number) => void
-  openTracing: (height: number) => void
-  closeTracing: (height: number) => void
-  toggleTracing: () => void
   toggleVariables: () => void
   setEditorFlex: (flex: number) => void
   stopQuery: (sessionId: string) => void
@@ -107,10 +98,7 @@ export interface ReduxProps {
   variableEditorHeight: number
   currentQueryStartTime?: Date
   currentQueryEndTime?: Date
-  responseTracingOpen: boolean
-  responseTracingHeight: number
   responseExtensions: any
-  tracingSupported?: boolean
   editorFlex: number
   headers: string
   headersCount: number
@@ -189,6 +177,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
                 onHintInformationRender={this.handleHintInformationRender}
                 onRunQuery={this.runQueryAtCursor}
                 onClickReference={this.handleClickReference}
+                onEdit={this.props.onEdit}
               />
               <VariableEditor
                 isOpen={this.props.variableEditorOpen}
@@ -253,20 +242,6 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
               {this.props.subscriptionActive && (
                 <Listening>Listening &hellip;</Listening>
               )}
-              <ResponseTracking
-                isOpen={this.props.responseTracingOpen}
-                height={this.props.responseTracingHeight}
-              >
-                <ResponseTrackingTitle
-                  isOpen={this.props.responseTracingOpen}
-                  onMouseDown={this.handleTracingResizeStart}
-                >
-                  <VariableEditorSubtitle isOpen={false}>
-                    Tracing
-                  </VariableEditorSubtitle>
-                </ResponseTrackingTitle>
-                <ResponseTracing open={this.props.responseTracingOpen} />
-              </ResponseTracking>
             </ResultWrap>
           </EditorBar>
         </EditorWrapper>
@@ -288,7 +263,6 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
             />
           </SideTab>
         </SideTabs>
-        }
       </Container>
     )
   }
@@ -474,45 +448,6 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
     )
   }
 
-  private handleTracingResizeStart = downEvent => {
-    downEvent.preventDefault()
-
-    let didMove = false
-    const hadHeight = this.props.responseTracingHeight
-    const offset = downEvent.clientY - getTop(downEvent.target)
-
-    let onMouseMove: any = moveEvent => {
-      if (moveEvent.buttons === 0) {
-        return onMouseUp()
-      }
-
-      didMove = true
-
-      const editorBar = ReactDOM.findDOMNode(this.editorBarComponent)
-      const topSize = moveEvent.clientY - getTop(editorBar) - offset
-      const bottomSize = editorBar.clientHeight - topSize
-      if (bottomSize < 60) {
-        this.props.closeTracing(hadHeight)
-      } else {
-        this.props.openTracing(hadHeight)
-      }
-    }
-
-    let onMouseUp: any = () => {
-      if (!didMove) {
-        this.props.toggleTracing()
-      }
-
-      document.removeEventListener('mousemove', onMouseMove)
-      document.removeEventListener('mouseup', onMouseUp)
-      onMouseMove = null
-      onMouseUp = null
-    }
-
-    document.addEventListener('mousemove', onMouseMove)
-    document.addEventListener('mouseup', onMouseUp)
-  }
-
   private handleVariableResizeStart = downEvent => {
     downEvent.preventDefault()
 
@@ -600,12 +535,9 @@ const mapStateToProps = createStructuredSelector({
   subscriptionActive: getSubscriptionActive,
   variableEditorOpen: getVariableEditorOpen,
   variableEditorHeight: getVariableEditorHeight,
-  responseTracingOpen: getResponseTracingOpen,
-  responseTracingHeight: getResponseTracingHeight,
   responseExtensions: getResponseExtensions,
   currentQueryStartTime: getCurrentQueryStartTime,
   currentQueryEndTime: getCurrentQueryEndTime,
-  tracingSupported: getTracingSupported,
   editorFlex: getEditorFlex,
   queryVariablesActive: getQueryVariablesActive,
   headers: getHeaders,
@@ -627,9 +559,6 @@ connect<any, any, any>(
     closeQueryVariables,
     openVariables,
     closeVariables,
-    openTracing,
-    closeTracing,
-    toggleTracing,
     setEditorFlex,
     toggleVariables,
     fetchSchema,
@@ -705,6 +634,7 @@ const BottomDrawerTitle = styled.div`
 `
 
 const VariableEditor = styled(BottomDrawer)`
+  background: ${p => p.theme.editorColours.leftDrawerBackground};
   .CodeMirror {
     padding-left: 4px;
     width: calc(100% - 4px);
@@ -735,19 +665,6 @@ const VariableEditorSubtitle = styled<TitleProps, 'span'>('span')`
   &:last-child {
     margin-right: 0;
   }
-`
-
-const ResponseTracking = styled(BottomDrawer)`
-  background: ${p => p.theme.editorColours.rightDrawerBackground};
-`
-
-const ResponseTrackingTitle = styled<TitleProps>(({ isOpen, ...rest }) => (
-  <BottomDrawerTitle {...rest} />
-))`
-  text-align: right;
-  background: ${p => p.theme.editorColours.rightDrawerBackground};
-  cursor: ${props => (props.isOpen ? 's-resize' : 'n-resize')};
-  color: ${p => p.theme.editorColours.drawerTextInactive};
 `
 
 interface QueryProps {

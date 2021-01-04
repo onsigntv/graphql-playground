@@ -92,6 +92,7 @@ export interface Props {
   ) => ApolloLink
   workspaceName?: string
   schema?: GraphQLSchema
+  onEdit?: (value: string) => void
 }
 
 export interface ReduxProps {
@@ -315,6 +316,7 @@ export class Playground extends React.PureComponent<Props & ReduxProps, State> {
                 shareEnabled={this.props.shareEnabled}
                 fixedEndpoint={this.props.fixedEndpoint}
                 schema={this.state.schema}
+                onEdit={this.props.onEdit}
               />
             )}
           </GraphiqlWrapper>
@@ -451,7 +453,7 @@ const PlaygroundContainer = styled.div`
 `
 
 const GraphiqlsContainer = styled.div`
-  height: calc(100vh - 57px);
+  height: calc(100% - 57px);
   position: relative;
   overflow: hidden;
 `

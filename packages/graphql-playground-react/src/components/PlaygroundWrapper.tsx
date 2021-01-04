@@ -68,6 +68,7 @@ export interface PlaygroundWrapperProps {
   codeTheme?: EditorColours
   workspaceName?: string
   headers?: any
+  onEdit?: (value: string) => void
 }
 
 export interface ReduxProps {
@@ -97,6 +98,7 @@ class PlaygroundWrapper extends React.Component<
   constructor(props: PlaygroundWrapperProps & ReduxProps) {
     super(props)
     ;(global as any).m = this
+    ;(window as any).changeHeader = this.handleChangeHeader
 
     this.state = this.mapPropsToState(props)
     this.removeLoader()
@@ -346,7 +348,7 @@ class PlaygroundWrapper extends React.Component<
 
     const { theme } = this.props
     return (
-      <div>
+      <ThemeWrapper>
         {title}
         <ThemeProvider
           theme={{
@@ -397,6 +399,7 @@ class PlaygroundWrapper extends React.Component<
               fixedEndpoints={Boolean(this.state.configString)}
               fixedEndpoint={this.props.fixedEndpoint}
               headers={combinedHeaders}
+              onEdit={this.props.onEdit}
               configPath={this.props.configPath}
               workspaceName={
                 this.props.workspaceName || this.state.activeProjectName
@@ -406,7 +409,7 @@ class PlaygroundWrapper extends React.Component<
             />
           </App>
         </ThemeProvider>
-      </div>
+      </ThemeWrapper>
     )
   }
 
@@ -449,6 +452,12 @@ class PlaygroundWrapper extends React.Component<
       ),
       activeProjectName: projectName,
     })
+  }
+
+  handleChangeHeader = (header: string, value: string) => {
+    const headers = this.state.headers || {}
+    headers[header] = value
+    this.setState({ headers })
   }
 
   private handleChangeEndpoint = endpoint => {
@@ -554,19 +563,24 @@ async function find(
 }
 
 const appearIn = keyframes`
-  from { 
+  from {
     opacity: 0;
     transform: translateY(10px);
   }
-  to { 
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 `
 
+const ThemeWrapper = styled.div`
+  height: 100%;
+`
+
 const App = styled.div`
   display: flex;
   width: 100%;
+  height: 100%;
   opacity: 0;
   transform: translateY(10px);
   animation: ${appearIn} 0.5s ease-out forwards 0.2s;
