@@ -1,3 +1,19 @@
+# OnSign GraphQL Playground Internal Fork
+
+Internally, we use the `graphql-playground-react` project to integrate a playground environment into our developer page. This means all relevant files for changes are under `packages/graphql-playground-react`.
+
+Here are the steps needed to build this project for our internal usage:
+
+```sh
+cd packages/graphql-playground-react
+yarn
+npm run build
+```
+
+This will produce a bundle at `packages/graphql-playground-react/build/static/js/middleware.js`. It should be copied to our `vendor` folder on the main monorepo.
+
+---
+
 <p align="center"><img src="https://imgur.com/5fzMbyV.png" width="269"></p>
 
 [![npm version](https://badge.fury.io/js/graphql-playground-react.svg)](https://badge.fury.io/js/graphql-playground-react)
@@ -42,7 +58,7 @@ $ brew install --cask graphql-playground
 
 >  If you used static values, such as `graphql-playground-electron` does in [it's webpack config](https://github.com/prisma-labs/graphql-playground/blob/main/packages/graphql-playground-electron/webpack.config.build.js#L16), as well as the most common middleware implementations out there, they were not vulnerable to the attack.
 
-The only reason this vulnerability exists is because we are using template strings in `renderPlaygroundPage()` with potentially unsanitized user defined variables. This allows an attacker to inject html and javascript into the page. 
+The only reason this vulnerability exists is because we are using template strings in `renderPlaygroundPage()` with potentially unsanitized user defined variables. This allows an attacker to inject html and javascript into the page.
 - [Read more about preventing XSS in react](https://pragmaticwebsecurity.com/files/cheatsheets/reactxss.pdf)
 
 Common examples may be user-defined path parameters, query string, unsanitized UI provided values in database, etc., that are used to build template strings or passed directly to a `renderPlaygroundPage()` or the matching middleware function equivalent listed above.
