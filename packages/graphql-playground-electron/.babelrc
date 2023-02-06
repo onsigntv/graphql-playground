@@ -1,11 +1,10 @@
 {
   "presets": [
-    "react",
-    "latest"
+    "@babel/preset-env", "@babel/preset-react"
   ],
   "plugins": [
     "styled-jsx-postcss/babel",
-    "transform-runtime",
-    "transform-async-to-generator"
+    "@babel/plugin-proposal-object-rest-spread",
+    "babel-plugin-styled-components"
   ]
 }

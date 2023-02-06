@@ -79,7 +79,7 @@ class SettingsEditorHOC extends React.Component<
     super(props)
     this.state = { value: props.value }
   }
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.value !== this.props.value) {
       this.setState({ value: nextProps.value })
     }
@@ -98,7 +98,7 @@ class SettingsEditorHOC extends React.Component<
     this.props.editSettings()
   }
   handleSave = () => {
-    this.props.onSave(this.state.value)
+    this.props.onChange(this.state.value)
     this.props.saveSettings()
   }
 }
@@ -106,7 +106,7 @@ class SettingsEditorHOC extends React.Component<
 export const PlaygroundSettingsEditor = connect(
   playgroundSettingsSelector,
   {
-    onSave: setSettingsString,
+    onChange: setSettingsString,
     editSettings,
     saveSettings,
   },

@@ -162,10 +162,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
     return (
       <Container ref={this.setContainerComponent}>
         <EditorWrapper>
-          <TopBar
-            shareEnabled={this.props.shareEnabled}
-            fixedEndpoint={this.props.fixedEndpoint}
-          />
+          <TopBar shareEnabled={this.props.shareEnabled} />
           <EditorBar
             ref={this.setEditorBarComponent}
             onMouseDown={this.handleResizeStart}
@@ -237,7 +234,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
               <Results setRef={this.setResultComponent} />
               {!this.props.queryRunning &&
                 (!this.props.responses || this.props.responses.size === 0) && (
-                  <Intro>Hit the Play Button to get a response here</Intro>
+                  <Intro>Press the Play Button to get a response here</Intro>
                 )}
               {this.props.subscriptionActive && (
                 <Listening>Listening &hellip;</Listening>
@@ -246,8 +243,11 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
           </EditorBar>
         </EditorWrapper>
         <SideTabs
+          sessionId={this.props.sessionId}
+          schema={this.props.schema}
           setActiveContentRef={this.setSideTabActiveContentRef}
           setWidth={this.setDocsWidth}
+          maxWidth={10000}
         >
           <SideTab label="Docs" activeColor="green" tabWidth="49px">
             <GraphDocs
@@ -260,6 +260,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
               schema={this.props.schema}
               ref={this.setSchemaExplorerRef}
               sessionId={this.props.sessionId}
+              setWidth={this.setDocsWidth}
             />
           </SideTab>
         </SideTabs>
@@ -311,7 +312,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
   }
   setSchemaExplorerRef = ref => {
     if (ref) {
-      this.schemaExplorerComponent = ref.getWrappedInstance()
+      this.schemaExplorerComponent = ref
     }
   }
   setContainerComponent = ref => {
@@ -326,7 +327,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
 
   setSideTabActiveContentRef = ref => {
     if (ref) {
-      this.activeSideTabContent = ref.getWrappedInstance()
+      this.activeSideTabContent = ref
     }
   }
 
@@ -389,11 +390,9 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
     }
 
     const editor = this.queryEditorComponent.getCodeMirror()
-    if (editor.hasFocus()) {
-      const cursor = editor.getCursor()
-      const cursorIndex = editor.indexFromPos(cursor)
-      this.props.runQueryAtPosition(cursorIndex)
-    }
+    const cursor = editor.getCursor()
+    const cursorIndex = editor.indexFromPos(cursor)
+    this.props.runQueryAtPosition(cursorIndex)
   }
 
   private handleHintInformationRender = elem => {
@@ -423,7 +422,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
         return onMouseUp()
       }
 
-      const editorBar = ReactDOM.findDOMNode(this.editorBarComponent)
+      const editorBar = ReactDOM.findDOMNode(this.editorBarComponent) as Element
       const leftSize = moveEvent.clientX - getLeft(editorBar) - offset
       const rightSize = editorBar.clientWidth - leftSize
       this.props.setEditorFlex(leftSize / rightSize)
@@ -471,7 +470,7 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
 
       didMove = true
 
-      const editorBar = ReactDOM.findDOMNode(this.editorBarComponent)
+      const editorBar = ReactDOM.findDOMNode(this.editorBarComponent) as Element
       const topSize = moveEvent.clientY - getTop(editorBar) - offset
       const bottomSize = editorBar.clientHeight - topSize
       if (bottomSize < 60) {
@@ -566,7 +565,7 @@ connect<any, any, any>(
   },
   null,
   {
-    withRef: true,
+    forwardRef: true,
   },
 )(GraphQLEditor)
 
@@ -574,15 +573,18 @@ const EditorBar = styled.div`
   display: flex;
   flex-direction: row;
   flex: 1;
+  height: 100%;
 `
 
 const ResultWrap = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
+  height: 100%;
   position: relative;
   border-left: none;
   background: ${p => p.theme.editorColours.resultBackground};
+  overflow-anchor: auto;
 `
 
 const DragBar = styled.div`

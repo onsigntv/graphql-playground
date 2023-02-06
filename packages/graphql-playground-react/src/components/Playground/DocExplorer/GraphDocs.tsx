@@ -65,7 +65,9 @@ class GraphDocs extends React.Component<
     ;(window as any).d = this
   }
 
-  componentWillReceiveProps(nextProps: SideTabContentProps & StateFromProps) {
+  UNSAFE_componentWillReceiveProps(
+    nextProps: SideTabContentProps & StateFromProps,
+  ) {
     // If user use default column size % columnWidth
     // Make the column follow the clicks
     if (
@@ -266,7 +268,7 @@ export default connect<StateFromProps, DispatchFromProps, SideTabContentProps>(
   mapStateToProps,
   mapDispatchToProps,
   null,
-  { withRef: true },
+  { forwardRef: true },
 )(GraphDocs)
 
 const DocsExplorerContainer = styled.div`

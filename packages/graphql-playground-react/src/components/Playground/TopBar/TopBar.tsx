@@ -22,6 +22,7 @@ import {
 import { share } from '../../../state/sharing/actions'
 import { openHistory } from '../../../state/general/actions'
 import { getSettings } from '../../../state/workspace/reducers'
+import { Session } from '../../../state/sessions/reducers'
 import { ISettings } from '../../../types'
 
 export interface Props {
@@ -30,6 +31,7 @@ export interface Props {
   fixedEndpoint?: boolean
   isPollingSchema: boolean
   endpointUnreachable: boolean
+  session: Session
 
   editEndpoint: (value: string) => void
   prettifyQuery: () => void
@@ -111,8 +113,7 @@ class TopBar extends React.Component<Props, {}> {
     this.props.openHistory()
   }
   getCurl = () => {
-    // no need to rerender the whole time. only on-demand the store is fetched
-    const session = getSelectedSession(this.context.store.getState())
+    const session = this.props.session
     let variables
     try {
       variables = JSON.parse(session.variables)
@@ -130,6 +131,7 @@ class TopBar extends React.Component<Props, {}> {
     } catch (e) {
       //
     }
+    const globalHeaders = this.props.settings['request.globalHeaders']
     const headers = {
       'Accept-Encoding': 'gzip, deflate, br',
       'Content-Type': 'application/json',
@@ -137,6 +139,7 @@ class TopBar extends React.Component<Props, {}> {
       Connection: 'keep-alive',
       DNT: '1',
       Origin: location.origin || session.endpoint,
+      ...globalHeaders,
       ...sessionHeaders,
     }
     const headersString = Object.keys(headers)
@@ -157,6 +160,7 @@ const mapStateToProps = createStructuredSelector({
   isPollingSchema: getIsPollingSchema,
   endpointUnreachable: getEndpointUnreachable,
   settings: getSettings,
+  session: getSelectedSession,
 })
 
 export default connect(

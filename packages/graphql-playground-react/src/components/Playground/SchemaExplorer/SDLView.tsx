@@ -40,15 +40,15 @@ interface DispatchFromProps {
   setSchemaUpdated: () => void
 }
 
-class SDLView extends React.Component<
-  SideTabContentProps & StateFromProps & DispatchFromProps
-> {
+class SDLView extends React.Component<SideTabContentProps & StateFromProps> {
   ref
   constructor(props) {
     super(props)
     ;(window as any).d = this
   }
-  componentWillReceiveProps(nextProps: SideTabContentProps & StateFromProps) {
+  UNSAFE_componentWillReceiveProps(
+    nextProps: SideTabContentProps & StateFromProps,
+  ) {
     // If user use default column size % columnWidth
     // Make the column follow the clicks
     if (!this.props.schema && nextProps.schema) {
@@ -125,7 +125,8 @@ const mapStateToProps = createStructuredSelector({
 
 export default connect<StateFromProps, DispatchFromProps, SideTabContentProps>(
   mapStateToProps,
+  // @ts-ignore
   mapDispatchToProps,
   null,
-  { withRef: true },
+  { forwardRef: true },
 )(SDLView)

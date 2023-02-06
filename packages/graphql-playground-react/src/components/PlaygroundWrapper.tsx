@@ -44,8 +44,8 @@ export interface PlaygroundWrapperProps {
   subscriptionEndpoint?: string
   setTitle?: boolean
   settings?: ISettings
-  shareEnabled?: string
-  fixedEndpoint?: string
+  shareEnabled?: boolean
+  fixedEndpoint?: boolean
   folderName?: string
   configString?: string
   showNewWorkspace?: boolean
@@ -201,7 +201,9 @@ class PlaygroundWrapper extends React.Component<
     return endpoint.replace(/^http/, 'ws')
   }
 
-  componentWillReceiveProps(nextProps: PlaygroundWrapperProps & ReduxProps) {
+  UNSAFE_componentWillReceiveProps(
+    nextProps: PlaygroundWrapperProps & ReduxProps,
+  ) {
     // Reactive props (props that cause a state change upon being changed)
     if (
       nextProps.endpoint !== this.props.endpoint ||
@@ -258,7 +260,7 @@ class PlaygroundWrapper extends React.Component<
     return url
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     const platformToken = getParameterByName('platform-token')
     if (platformToken && platformToken.length > 0) {
       localStorage.setItem('platform-token', platformToken)
@@ -387,7 +389,6 @@ class PlaygroundWrapper extends React.Component<
               onChangeSubscriptionsEndpoint={
                 this.handleChangeSubscriptionsEndpoint
               }
-              adminAuthToken={this.state.platformToken}
               getRef={this.getPlaygroundRef}
               config={this.props.config!}
               configString={this.state.configString!}

@@ -51,11 +51,14 @@ export const defaultSettings: ISettings = {
   'prettier.tabWidth': 2,
   'prettier.useTabs': false,
   'request.credentials': 'omit',
+  'request.globalHeaders': {},
   'schema.disableComments': true,
   'schema.polling.enable': true,
   'schema.polling.endpointFilter': '*localhost*',
   'schema.polling.interval': 2000,
   'tracing.hideTracingResponse': true,
+  'tracing.tracingSupported': true,
+  'subscriptions.protocol': 'subscription-transport-ws',
 }
 
 // tslint:disable-next-line:max-classes-per-file
@@ -152,6 +155,7 @@ function makeStateFromTabs(tabs: Tab[]): RootState {
       {} as OrderedMap<string, Session>,
     ),
   )
+  // @ts-ignore
   const selectedSessionId = tabSessions.first()!.id
   const workspace = makeWorkspace(endpoint)
     .setIn(['sessions', 'sessions'], tabSessions)

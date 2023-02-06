@@ -1,8 +1,6 @@
 import { ApolloLink, execute } from 'apollo-link'
 import { parseHeaders } from '../../components/Playground/util/parseHeaders'
-import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { HttpLink } from 'apollo-link-http'
-import { WebSocketLink } from 'apollo-link-ws'
 import { isSubscription } from '../../components/Playground/util/hasSubscription'
 import {
   takeLatest,
@@ -38,6 +36,13 @@ import { Session, ResponseRecord } from './reducers'
 import { addHistoryItem } from '../history/actions'
 import { safely } from '../../utils'
 import { set } from 'immutable'
+import { SubscriptionClient as SubscriptionClientSTWS } from 'subscriptions-transport-ws'
+import { WebSocketLink as WebSocketLinkALW } from 'apollo-link-ws'
+import {
+  createClient as createSubscriptionClient,
+  Client as SubscriptionClientGWS,
+} from 'graphql-ws'
+import { WebSocketLink as WebSocketLinkGW } from './WebSocketLink'
 
 // tslint:disable
 let subscriptionEndpoint
@@ -50,18 +55,24 @@ export interface LinkCreatorProps {
   endpoint: string
   headers?: Headers
   credentials?: string
+  subscriptionTransport?: string
 }
 
 export interface Headers {
   [key: string]: string | number | null
 }
 
+const isWSEndpoint = (endpoint: string): boolean => !!endpoint.match(/wss?/)
+
 export const defaultLinkCreator = (
   session: LinkCreatorProps,
   subscriptionEndpoint?: string,
-): { link: ApolloLink; subscriptionClient?: SubscriptionClient } => {
+): {
+  link: ApolloLink
+  subscriptionClient?: SubscriptionClientGWS | SubscriptionClientSTWS
+} => {
   let connectionParams = {}
-  const { headers, credentials } = session
+  const { headers, credentials, subscriptionTransport } = session
 
   if (headers) {
     connectionParams = { ...headers }
@@ -73,21 +84,53 @@ export const defaultLinkCreator = (
     credentials,
   })
 
-  if (!subscriptionEndpoint) {
-    return { link: httpLink }
+  // ws endpoint => graphql-ws default link
+  if (isWSEndpoint(session.endpoint)) {
+    const subscriptionClient = createSubscriptionClient({
+      retryAttempts: 1000,
+      retryWait: () => new Promise(resolve => setTimeout(resolve, 20000)),
+      lazy: true,
+      connectionParams,
+      url: session.endpoint,
+    })
+
+    return {
+      link: new WebSocketLinkGW(subscriptionClient),
+      subscriptionClient,
+    }
   }
 
-  const subscriptionClient = new SubscriptionClient(subscriptionEndpoint, {
-    timeout: 20000,
-    lazy: true,
-    connectionParams,
-  })
+  // http endpoint & graphql-ws => default link = http + graphql-ws subscriptions
+  if (subscriptionTransport === 'graphql-ws') {
+    const subscriptionClient = createSubscriptionClient({
+      retryWait: () => new Promise(resolve => setTimeout(resolve, 20000)),
+      lazy: true,
+      connectionParams,
+      url: subscriptionEndpoint || session.endpoint.replace('http', 'ws'),
+    })
 
-  const webSocketLink = new WebSocketLink(subscriptionClient)
+    return {
+      subscriptionClient,
+      link: new WebSocketLinkGW(subscriptionClient),
+    }
+  }
+
+  // http endpoint => default link = http + subscriptions-transport-ws subscriptions
+  const subscriptionClient = new SubscriptionClientSTWS(
+    subscriptionEndpoint || session.endpoint.replace('http', 'ws'),
+    {
+      timeout: 20000,
+      lazy: true,
+      connectionParams,
+    },
+  )
+
+  const webSocketLink = new WebSocketLinkALW(subscriptionClient)
+
   return {
     link: ApolloLink.split(
       operation => isSubscription(operation),
-      webSocketLink as any,
+      webSocketLink,
       httpLink,
     ),
     subscriptionClient,
@@ -106,6 +149,12 @@ export function setLinkCreator(newLinkCreator) {
 }
 
 const subscriptions = {}
+
+const isSubscriptionClientSTWS = (
+  client: SubscriptionClientGWS | SubscriptionClientSTWS,
+): client is SubscriptionClientSTWS => {
+  return !!(client as SubscriptionClientSTWS).onDisconnected
+}
 
 function* runQuerySaga(action) {
   // run the query
@@ -127,9 +176,14 @@ function* runQuerySaga(action) {
   if (session.tracingSupported && session.responseTracingOpen) {
     headers = set(headers, 'X-Apollo-Tracing', '1')
   }
+
   const lol = {
     endpoint: session.endpoint,
-    headers,
+    headers: {
+      ...settings['request.globalHeaders'],
+      ...headers,
+    },
+    subscriptionTransport: settings['subscriptions.protocol'],
     credentials: settings['request.credentials'],
   }
 
@@ -140,7 +194,7 @@ function* runQuerySaga(action) {
   const channel = eventChannel(emitter => {
     let closed = false
     if (subscriptionClient && operationIsSubscription) {
-      subscriptionClient.onDisconnected(() => {
+      const onDisconnect = () => {
         closed = true
         emitter({
           error: new Error(
@@ -148,7 +202,12 @@ function* runQuerySaga(action) {
           ),
         })
         emitter(END)
-      })
+      }
+      if (isSubscriptionClientSTWS(subscriptionClient)) {
+        subscriptionClient.onDisconnected(onDisconnect)
+      } else {
+        subscriptionClient.on('closed', onDisconnect)
+      }
     }
     const subscription = execute(link, operation).subscribe({
       next: function(value) {
