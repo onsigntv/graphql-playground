@@ -134,7 +134,7 @@
     "lodash.debounce": "^4.0.8",
     "lru-cache": "^6.0.0",
     "markdown-it": "^12.2.0",
-    "prettier": "2.0.2",
+    "prettier": "2.1.2",
     "prop-types": "^15.7.2",
     "query-string": "5",
     "react": "16.13.1",
