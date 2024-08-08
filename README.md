@@ -1,3 +1,23 @@
+# OnSign Instructions
+
+Because this project is kind of a mess (in many ways), I'm leaving the basic requirements to build the project here for future usages.
+
+Requirements:
+- Python 2.7 (you can use `pyenv` if on MacOS)
+- Node 18 (you can use `nvm`)
+- Yarn 1.x.x (aka [legacy version](https://classic.yarnpkg.com/lang/en/docs/install/))
+
+After installing all the requirements, go to `packages/graphql-playground-react` and run:
+
+```sh
+yarn
+yarn build
+```
+
+If everything went right, `packages/graphql-playground-react/build/static/js/middleware.js` will have the code we want to copy to our `OnSign-GraphQLPlayground.js` on the main repo.
+
+# General Instructions
+
 <p align="center"><img src="https://imgur.com/5fzMbyV.png" width="269"></p>
 
 [![npm version](https://badge.fury.io/js/graphql-playground-react.svg)](https://badge.fury.io/js/graphql-playground-react) [![CircleCI](https://circleci.com/gh/prisma/graphql-playground.svg?style=shield)](https://circleci.com/gh/prisma/graphql-playground)
