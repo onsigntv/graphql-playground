@@ -2,9 +2,16 @@
 
 Internally, we use the `graphql-playground-react` project to integrate a playground environment into our developer page. This means all relevant files for changes are under `packages/graphql-playground-react`.
 
-Here are the steps needed to build this project for our internal usage:
+Requirements:
+
+- Python 2.7 (you can use `pyenv` if on MacOS)
+- Node 18 (you can use `nvm`)
+- Yarn 1.x.x (aka [legacy version](https://classic.yarnpkg.com/lang/en/docs/install/))
+
+Build steps:
 
 ```sh
+export NODE_OPTIONS=--openssl-legacy-provider
 cd packages/graphql-playground-react
 yarn
 npm run build
