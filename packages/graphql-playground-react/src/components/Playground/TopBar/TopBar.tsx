@@ -12,7 +12,6 @@ import {
   getIsPollingSchema,
 } from '../../../state/sessions/selectors'
 import { connect } from 'react-redux'
-import { getFixedEndpoint } from '../../../state/general/selectors'
 import * as PropTypes from 'prop-types'
 import {
   editEndpoint,
@@ -50,6 +49,9 @@ class TopBar extends React.Component<Props, {}> {
       getState: PropTypes.func.isRequired,
     }),
   }
+  realEndpoint(value: string) {
+    return value.replace("app.onsign.tv", "api.onsign.tv")
+  }
   render() {
     const { endpointUnreachable, settings } = this.props
     return (
@@ -58,7 +60,7 @@ class TopBar extends React.Component<Props, {}> {
         <Button onClick={this.openHistory}>History</Button>
         <UrlBarWrapper>
           <UrlBar
-            value={this.props.endpoint}
+            value={this.realEndpoint(this.props.endpoint)}
             onChange={this.onChange}
             onKeyDown={this.onKeyDown}
             onBlur={this.props.refetchSchema}
@@ -114,6 +116,7 @@ class TopBar extends React.Component<Props, {}> {
   }
   getCurl = () => {
     const session = this.props.session
+    const endpoint = this.realEndpoint(session.endpoint)
     let variables
     try {
       variables = JSON.parse(session.variables)
@@ -138,7 +141,7 @@ class TopBar extends React.Component<Props, {}> {
       Accept: 'application/json',
       Connection: 'keep-alive',
       DNT: '1',
-      Origin: location.origin || session.endpoint,
+      Origin: location.origin || endpoint,
       ...globalHeaders,
       ...sessionHeaders,
     }
@@ -149,14 +152,13 @@ class TopBar extends React.Component<Props, {}> {
       })
       .join(' ')
     return `curl '${
-      session.endpoint
+      endpoint
     }' ${headersString} --data-binary '${data}' --compressed`
   }
 }
 
 const mapStateToProps = createStructuredSelector({
   endpoint: getEndpoint,
-  fixedEndpoint: getFixedEndpoint,
   isPollingSchema: getIsPollingSchema,
   endpointUnreachable: getEndpointUnreachable,
   settings: getSettings,

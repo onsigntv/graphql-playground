@@ -171,8 +171,8 @@ export const lightColours: Colours = {
   lightGrey: '#eeeff0',
   lighterGrey: '#f6f7f7',
   // New colors
-  text: 'rgba(0,0,0,.7)',
-  textInactive: 'rgba(0,0,0,.3)',
+  text: 'rgba(0,0,0,.8)',
+  textInactive: 'rgba(0,0,0,.6)',
 }
 
 export const darkEditorColours: EditorColours = {
@@ -251,8 +251,8 @@ export const lightEditorColours: EditorColours = {
   ws: 'rgba(23, 42, 58, 0.8)', //
   selection: '#d1e9fd',
   cursorColor: 'rgba(0, 0, 0, 0.4)',
-  text: 'rgba(0, 0, 0, 0.7)',
-  textInactive: 'rgba(0, 0, 0, 0.3)',
+  text: 'rgba(0, 0, 0, 0.8)',
+  textInactive: 'rgba(0, 0, 0, 0.6)',
   background: '#dbdee0',
   sidebarTop: '#eeeff0',
   sidebar: '#eeeff0',

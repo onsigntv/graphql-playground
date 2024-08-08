@@ -162,7 +162,10 @@ class GraphQLEditor extends React.PureComponent<Props & ReduxProps> {
     return (
       <Container ref={this.setContainerComponent}>
         <EditorWrapper>
-          <TopBar shareEnabled={this.props.shareEnabled} />
+          <TopBar
+            shareEnabled={this.props.shareEnabled}
+            fixedEndpoint={this.props.fixedEndpoint}
+          />
           <EditorBar
             ref={this.setEditorBarComponent}
             onMouseDown={this.handleResizeStart}
